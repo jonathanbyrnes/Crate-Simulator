@@ -46,4 +46,15 @@ public class CrateController {
         service.delete(crateId);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/{crateId}/approve")
+    public ResponseEntity<CrateDto> approve(@PathVariable Long crateId) {
+        return ResponseEntity.ok(service.approve(crateId));
+    }
+
+    @PatchMapping("/{crateId}/disapprove")
+    public ResponseEntity<CrateDto> disapprove(@PathVariable Long crateId) {
+        return ResponseEntity.ok(service.disapprove(crateId));
+    }
+
 }

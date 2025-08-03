@@ -46,13 +46,21 @@ public class CrateService {
         repository.deleteById(crateId);
     }
 
+    public CrateDto approve(Long crateId) {
+        return setApproval(crateId, true);
+    }
+
+    public CrateDto disapprove(Long crateId) {
+        return setApproval(crateId, false);
+    }
+
     private Crate getCrateById(Long crateId) {
         return repository.findById(crateId)
                 .orElseThrow(() -> new CrateNotFoundException(crateId));
     }
 
     private CrateDto toDto(Crate crate) {
-        return new CrateDto(crate.getId(), crate.getName(), crate.getDescription());
+        return new CrateDto(crate.getId(), crate.getName(), crate.getDescription(), crate.isApproved());
     }
 
     private void mapRequestToEntity(CreateCrateRequest request, Crate crate) {
@@ -63,6 +71,12 @@ public class CrateService {
     private CrateDto saveAndReturnDto(Crate crate, CreateCrateRequest request) {
         mapRequestToEntity(request, crate);
         return toDto(repository.save(crate));
+    }
+
+    private CrateDto setApproval(Long crateId, boolean approved) {
+        Crate searchedForCrate = getCrateById(crateId);
+        searchedForCrate.setApproved(approved);
+        return toDto(repository.save(searchedForCrate));
     }
 
 
