@@ -13,4 +13,5 @@ public class CrateDto {
     private Long id;
     private String name;
     private String description;
+    private boolean approved;
 }

@@ -18,4 +18,8 @@ public class Crate {
     @Column(name = "description", length = 252)
     private String description;
 
+    @Column(name = "approved", nullable = false)
+    @Builder.Default
+    private boolean approved = false;
+
 }
