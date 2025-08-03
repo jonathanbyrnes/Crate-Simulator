@@ -10,6 +10,6 @@ Closes #<issue-number>
 
 ---
 
-## 🧪 How was this tested?
+## How was this tested?
 
 - _List unit/integration tests or manual steps._
