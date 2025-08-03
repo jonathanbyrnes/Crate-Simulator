@@ -17,11 +17,9 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.willDoNothing;
-import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -48,7 +46,7 @@ public class CrateControllerTests {
         String requestBody = objectMapper.writeValueAsString(input);
 
         CrateDto savedOutput = new CrateDto(1L,
-                "Test Crate", "Test Description");
+                "Test Crate", "Test Description", false);
 
         when(crateService.create(any(CreateCrateRequest.class)))
                 .thenReturn(savedOutput);
@@ -65,8 +63,8 @@ public class CrateControllerTests {
     @Test
     public void list() throws Exception {
         List<CrateDto> crates = List.of(
-                new CrateDto(1L, "Crate One", "First"),
-                new CrateDto(2L, "Crate Two", "Second")
+                new CrateDto(1L, "Crate One", "First", false),
+                new CrateDto(2L, "Crate Two", "Second", false)
         );
 
         when(crateService.findAll()).thenReturn(crates);
@@ -85,7 +83,7 @@ public class CrateControllerTests {
     @Test
     public void get() throws Exception {
         CrateDto output = new CrateDto(42L,
-                "Test Crate", "Test Desc");
+                "Test Crate", "Test Desc", false);
 
         when(crateService.findById(42L)).thenReturn(output);
 
@@ -105,7 +103,7 @@ public class CrateControllerTests {
         String requestBody = objectMapper.writeValueAsString(input);
 
         CrateDto savedOutput = new CrateDto(2L,
-                "Test Crate", "Test Description");
+                "Test Crate", "Test Description", false);
 
         when(crateService.update(eq(2L), any(CreateCrateRequest.class)))
                 .thenReturn(savedOutput);
@@ -135,4 +133,49 @@ public class CrateControllerTests {
         mockMvc.perform(MockMvcRequestBuilders.delete(crateTargettedEndpoint, 4L))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    public void approveSuccess() throws Exception {
+        CrateDto approvedDto = new CrateDto(5L,
+                "Some Crate", "Desc", true);
+
+        given(crateService.approve(5L)).willReturn(approvedDto);
+
+        mockMvc.perform(patch(crateTargettedEndpoint + "/approve", 5L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(5L))
+                .andExpect(jsonPath("$.approved").value(true));
+    }
+
+    @Test
+    public void approveUnsuccessful() throws Exception {
+        given(crateService.approve(6L))
+                .willThrow(new CrateNotFoundException(6L));
+
+        mockMvc.perform(patch(crateTargettedEndpoint + "/approve", 6L))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void disapproveSuccess() throws Exception {
+        CrateDto disapprovedDto = new CrateDto(5L,
+                "Some Crate", "Desc", false);
+
+        given(crateService.disapprove(5L)).willReturn(disapprovedDto);
+
+        mockMvc.perform(patch(crateTargettedEndpoint + "/disapprove", 5L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(5L))
+                .andExpect(jsonPath("$.approved").value(false));
+    }
+
+    @Test
+    public void disapproveUnsuccessful() throws Exception {
+        given(crateService.disapprove(6L)).
+                willThrow(new CrateNotFoundException(6L));
+
+        mockMvc.perform(patch(crateTargettedEndpoint + "/disapprove", 6L))
+                .andExpect(status().isNotFound());
+    }
+
 }
