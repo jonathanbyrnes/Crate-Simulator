@@ -28,6 +28,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(CrateController.class)
 public class CrateControllerTests {
 
+    private final String baseEndpoint = "/api/crates";
+    private final String crateTargettedEndpoint = baseEndpoint.concat("/{crateId}");
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -50,7 +53,7 @@ public class CrateControllerTests {
         when(crateService.create(any(CreateCrateRequest.class)))
                 .thenReturn(savedOutput);
 
-        mockMvc.perform(post("/api/crates")
+        mockMvc.perform(post(baseEndpoint)
                         .content(requestBody)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
@@ -68,7 +71,7 @@ public class CrateControllerTests {
 
         when(crateService.findAll()).thenReturn(crates);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/crates"))
+        mockMvc.perform(MockMvcRequestBuilders.get(baseEndpoint))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].id").value(1))
@@ -86,7 +89,7 @@ public class CrateControllerTests {
 
         when(crateService.findById(42L)).thenReturn(output);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/crates/{crateId}",
+        mockMvc.perform(MockMvcRequestBuilders.get(crateTargettedEndpoint,
                         42L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(42))
@@ -107,7 +110,7 @@ public class CrateControllerTests {
         when(crateService.update(eq(2L), any(CreateCrateRequest.class)))
                 .thenReturn(savedOutput);
 
-        mockMvc.perform(put("/api/crates/{crateId}", 2L)
+        mockMvc.perform(put(crateTargettedEndpoint, 2L)
                         .content(requestBody)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -120,7 +123,7 @@ public class CrateControllerTests {
     public void deleteSuccess() throws Exception {
         willDoNothing().given(crateService).delete(3L);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/crates/{crateId}", 3L))
+        mockMvc.perform(MockMvcRequestBuilders.delete(crateTargettedEndpoint, 3L))
                 .andExpect(status().isNoContent());
     }
 
@@ -129,7 +132,7 @@ public class CrateControllerTests {
         willThrow(new CrateNotFoundException(4L))
                 .given(crateService).delete(4L);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/crates/{crateId}", 4L))
+        mockMvc.perform(MockMvcRequestBuilders.delete(crateTargettedEndpoint, 4L))
                 .andExpect(status().isNotFound());
     }
 }
