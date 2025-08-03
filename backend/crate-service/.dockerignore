@@ -1,0 +1,10 @@
+# Gradle build artifacts
+.gradle/
+build/
+
+# IDE files
+.idea/
+*.iml
+
+# Git metadata
+.git/
