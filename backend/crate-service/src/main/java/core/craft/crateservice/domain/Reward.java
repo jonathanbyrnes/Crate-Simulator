@@ -1,13 +1,11 @@
 package core.craft.crateservice.domain;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Entity
 @Table(name = "reward")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Reward {
 
     @Id
@@ -26,4 +24,8 @@ public class Reward {
 
     @Column(name="weight", nullable = false)
     private double weight;
+
+    @Column(name = "approved", nullable = false)
+    @Builder.Default
+    private boolean approved = false;
 }

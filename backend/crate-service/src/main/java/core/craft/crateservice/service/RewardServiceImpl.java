@@ -55,13 +55,23 @@ public class RewardServiceImpl implements RewardService {
         repository.deleteById(rewardId);
     }
 
+    @Override
+    public RewardDto approve(Long rewardId) {
+        return setApproval(rewardId, true);
+    }
+
+    @Override
+    public RewardDto disapprove(Long rewardId) {
+        return setApproval(rewardId, false);
+    }
+
     private Reward getRewardById(Long rewardId) {
         return repository.findById(rewardId)
                 .orElseThrow(() -> new RewardNotFoundException(rewardId));
     }
 
     private RewardDto toDto(Reward reward) {
-        return new RewardDto(reward.getId(), reward.getCrate().getId(), reward.getName(), reward.getDescription(), reward.getWeight());
+        return new RewardDto(reward.getId(), reward.getCrate().getId(), reward.getName(), reward.getDescription(), reward.getWeight(), reward.isApproved());
     }
 
     private void mapRequestToEntity(CreateRewardRequest request, Reward reward) {
@@ -88,6 +98,12 @@ public class RewardServiceImpl implements RewardService {
     private RewardDto saveAndReturnDto(Reward reward, UpdateRewardRequest request) {
         mapRequestToEntity(request, reward);
         return toDto(repository.save(reward));
+    }
+
+    private RewardDto setApproval(Long rewardId, boolean approved) {
+        Reward searchedForReward = getRewardById(rewardId);
+        searchedForReward.setApproved(approved);
+        return toDto(repository.save(searchedForReward));
     }
 
 
