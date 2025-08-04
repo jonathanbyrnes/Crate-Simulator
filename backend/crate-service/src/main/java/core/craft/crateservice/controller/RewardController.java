@@ -48,4 +48,14 @@ public class RewardController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{rewardId}/approve")
+    public ResponseEntity<RewardDto> approve(@PathVariable Long rewardId) {
+        return ResponseEntity.ok(service.approve(rewardId));
+    }
+
+    @PatchMapping("/{rewardId}/disapprove")
+    public ResponseEntity<RewardDto> disapprove(@PathVariable Long rewardId) {
+        return ResponseEntity.ok(service.disapprove(rewardId));
+    }
+
 }
