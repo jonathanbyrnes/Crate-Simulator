@@ -15,4 +15,5 @@ public class RewardDto {
     private String name;
     private String description;
     private double weight;
+    private boolean approved;
 }
