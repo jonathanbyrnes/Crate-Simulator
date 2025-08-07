@@ -1,11 +1,9 @@
 package core.craft.crateservice.controller;
 
-import core.craft.crateservice.dto.CreateOpeningRequest;
 import core.craft.crateservice.dto.OpeningDto;
 import core.craft.crateservice.service.OpeningService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
