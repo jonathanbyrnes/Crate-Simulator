@@ -5,7 +5,11 @@ import lombok.*;
 
 @Entity
 @Table(name = "reward")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Reward {
 
     @Id
@@ -13,7 +17,7 @@ public class Reward {
     private Long id;
 
     @ManyToOne(optional = false)
-    @Column(name="crate", nullable = false)
+    @JoinColumn(name="crate_id", nullable = false)
     private Crate crate;
 
     @Column(name="name", nullable = false)
@@ -25,7 +29,7 @@ public class Reward {
     @Column(name="weight", nullable = false)
     private double weight;
 
-    @Column(name = "approved", nullable = false)
+    @Column(name = "approved", nullable = false, columnDefinition = "boolean default false")
     @Builder.Default
     private boolean approved = false;
 }
