@@ -5,7 +5,11 @@ import lombok.*;
 
 @Entity
 @Table(name = "crate")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Crate {
 
     @Id
@@ -18,7 +22,7 @@ public class Crate {
     @Column(name = "description", length = 252)
     private String description;
 
-    @Column(name = "approved", nullable = false)
+    @Column(name = "approved", nullable = false, columnDefinition = "boolean default false")
     @Builder.Default
     private boolean approved = false;
 

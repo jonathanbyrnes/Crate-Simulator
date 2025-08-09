@@ -2,13 +2,15 @@ package core.craft.crateservice.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.Id;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "opening")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Opening {
 
     @Id
@@ -16,11 +18,11 @@ public class Opening {
     private Long id;
 
     @ManyToOne(optional = false)
-    @Column(name="crate", nullable = false)
+    @JoinColumn(name="crate_id", nullable = false)
     private Crate crate;
 
     @ManyToOne(optional = false)
-    @Column(name="reward", nullable = false)
+    @JoinColumn(name="reward_id", nullable = false)
     private Reward reward;
 
     @Column(nullable = false, updatable = false)
