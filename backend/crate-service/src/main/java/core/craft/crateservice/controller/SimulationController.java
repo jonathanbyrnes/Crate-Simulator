@@ -6,17 +6,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/crates/{crateId}/open")
+@RequestMapping("/api/crates/{crateId}/simulate")
 @RequiredArgsConstructor
-public class OpeningController {
+public class SimulationController {
 
     private final OpeningRequestService service;
 
     @PostMapping
-    public ResponseEntity<Void> open(@PathVariable Long crateId) {
-        service.requestOpening(crateId);
+    public ResponseEntity<Void> simulate(@PathVariable Long crateId,
+                                         @RequestParam(defaultValue = "1000") int count) {
+        service.requestOpenings(crateId, count);
         return ResponseEntity.accepted().build();
     }
-
 }
-
