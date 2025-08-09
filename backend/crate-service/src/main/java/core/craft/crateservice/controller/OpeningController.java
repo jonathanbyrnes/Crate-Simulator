@@ -1,8 +1,6 @@
 package core.craft.crateservice.controller;
 
-import core.craft.crateservice.dto.CreateOpeningRequest;
-import core.craft.crateservice.dto.OpeningDto;
-import core.craft.crateservice.publisher.OpeningPublisher;
+import core.craft.crateservice.service.OpeningRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,11 +10,11 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class OpeningController {
 
-    private final OpeningPublisher publisher;
+    private final OpeningRequestService service;
 
     @PostMapping
-    public ResponseEntity<OpeningDto> open(@PathVariable Long crateId) {
-        publisher.publishOpening(new CreateOpeningRequest(crateId));
+    public ResponseEntity<Void> open(@PathVariable Long crateId) {
+        service.requestOpening(crateId);
         return ResponseEntity.accepted().build();
     }
 
