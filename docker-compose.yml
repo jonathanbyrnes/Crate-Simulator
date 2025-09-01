@@ -19,7 +19,7 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_BROKER_ID: 1
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-  postgres:
+  postgres-crate:
     image: "postgres:15"
     restart: always
     env_file:
@@ -31,24 +31,85 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata_crate:/var/lib/postgresql/data
+
+  postgres-reward:
+    image: "postgres:15"
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: reward_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata_reward:/var/lib/postgresql/data
+
+  postgres-opening:
+    image: "postgres:15"
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: opening_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata_opening:/var/lib/postgresql/data
 
   crate-service:
     build:
       context: ./backend/crate-service
       dockerfile: Dockerfile
     depends_on:
-      - kafka
-      - postgres
+      - postgres-crate
     env_file:
       - .env
     environment:
-      SPRING_DATASOURCE_URL: ${DB_URL}
+      SPRING_DATASOURCE_URL: ${CRATE_DB_URL}
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
-      KAFKA_BOOTSTRAP: kafka:9092
     ports:
       - "8080:8080"
 
+  reward-service:
+    build:
+      context: ./backend/reward-service
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres-reward
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL: ${REWARD_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      CRATE_SERVICE_BASE_URL: http://crate-service:8080
+    ports:
+      - "8082:8080"
+
+  opening-service:
+    build:
+      context: ./backend/opening-service
+      dockerfile: Dockerfile
+    depends_on:
+      - kafka
+      - postgres-opening
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL: ${OPENING_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      REWARD_SERVICE_BASE_URL: http://reward-service:8080
+    ports:
+      - "8081:8080"
+
 volumes:
-  pgdata:
+  pgdata_crate:
+  pgdata_reward:
+  pgdata_opening:
