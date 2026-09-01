@@ -35,6 +35,9 @@ jobs:
       CRATE_DB_URL: jdbc:postgresql://localhost:5432/${{ matrix.db }}
       REWARD_DB_URL: jdbc:postgresql://localhost:5432/${{ matrix.db }}
       OPENING_DB_URL: jdbc:postgresql://localhost:5432/${{ matrix.db }}
+      CRATE_SERVICE_BASE_URL: http://localhost:8080
+      REWARD_SERVICE_BASE_URL: http://localhost:8081
+      KAFKA_BOOTSTRAP: localhost:9092
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
