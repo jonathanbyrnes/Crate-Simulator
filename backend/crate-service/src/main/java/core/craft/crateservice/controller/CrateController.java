@@ -21,7 +21,7 @@ public class CrateController {
     @PostMapping
     public ResponseEntity<CrateDto> create(@Validated @RequestBody CreateCrateRequest request) {
         CrateDto crateDto = service.create(request);
-        return ResponseEntity.created(URI.create("/api/crates" + crateDto.getId()))
+        return ResponseEntity.created(URI.create("/api/crates/" + crateDto.getId()))
                 .body(crateDto);
     }
 

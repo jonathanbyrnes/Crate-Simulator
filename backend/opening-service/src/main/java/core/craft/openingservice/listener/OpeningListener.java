@@ -12,7 +12,7 @@ public class OpeningListener {
 
     private final OpeningService openingService;
 
-    @KafkaListener(topics = "crate.open.request", groupId = "crate-service")
+    @KafkaListener(topics = "crate.open.request", groupId = "opening-service")
     public void onOpeningRequested(CreateOpeningRequest request) {
         openingService.open(request.getCrateId());
     }
