@@ -4,6 +4,7 @@ import core.craft.openingservice.domain.Opening;
 import core.craft.openingservice.dto.OpeningDto;
 import core.craft.openingservice.dto.RewardDto;
 import core.craft.openingservice.exception.ApprovedRewardNotFoundException;
+import core.craft.openingservice.exception.CrateNotApprovedException;
 import core.craft.openingservice.exception.RewardForCrateNotFoundException;
 import core.craft.openingservice.exception.RewardNotFoundException;
 import core.craft.openingservice.feign.OpeningInterface;
@@ -30,9 +31,11 @@ public class OpeningServiceImpl implements OpeningService {
     public OpeningDto open(Long crateId) {
         ResponseEntity<List<RewardDto>> choicesResponseEntity;
         try {
-            choicesResponseEntity = openingInterface.listByCrate(crateId);
+            choicesResponseEntity = openingInterface.listApprovedByCrate(crateId);
         } catch (FeignException.NotFound ex) {
             throw new RewardForCrateNotFoundException(crateId);
+        } catch (FeignException.Conflict ex) {
+            throw new CrateNotApprovedException(crateId);
         }
         if(!choicesResponseEntity.hasBody()) {
             throw new RewardForCrateNotFoundException(crateId);

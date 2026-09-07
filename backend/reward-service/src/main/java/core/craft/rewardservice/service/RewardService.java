@@ -11,6 +11,7 @@ public interface RewardService {
     RewardDto update(Long rewardId, UpdateRewardRequest request);
     RewardDto findById(Long rewardId);
     List<RewardDto> findByCrateId(Long crateId);
+    List<RewardDto> findApprovedByCrateId(Long crateId);
     void delete(Long rewardId);
     RewardDto approve(Long rewardId);
     RewardDto disapprove(Long rewardId);

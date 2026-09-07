@@ -10,8 +10,8 @@ import java.util.List;
 
 @FeignClient(name = "reward-service", url = "${REWARD_SERVICE_BASE_URL}")
 public interface OpeningInterface {
-    @GetMapping("/api/rewards/crate/{crateId}")
-    public ResponseEntity<List<RewardDto>> listByCrate(@PathVariable Long crateId);
+    @GetMapping("/api/rewards/crate/{crateId}/approved")
+    public ResponseEntity<List<RewardDto>> listApprovedByCrate(@PathVariable Long crateId);
 
     @GetMapping("/api/rewards/{rewardId}")
     public ResponseEntity<RewardDto> get(@PathVariable Long rewardId);

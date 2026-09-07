@@ -28,5 +28,10 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", ex.getMessage()));
     }
 
-}
+    @ExceptionHandler(CrateNotApprovedException.class)
+    public ResponseEntity<?> handleCrateNotApproved(CrateNotApprovedException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
 
+}

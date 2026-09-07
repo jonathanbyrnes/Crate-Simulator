@@ -37,4 +37,12 @@ public class GlobalExceptionHandlerTests {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody()).isEqualTo(Map.of("error", "Crate not found"));
     }
+
+    @Test
+    public void handleCrateNotApproved() {
+        ResponseEntity<?> response = handler.handleCrateNotApproved(new CrateNotApprovedException(4L));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.getBody()).isEqualTo(Map.of("error", "Crate is not approved with ID: 4"));
+    }
 }

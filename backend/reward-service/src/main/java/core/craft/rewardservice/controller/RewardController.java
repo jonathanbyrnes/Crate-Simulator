@@ -31,6 +31,11 @@ public class RewardController {
         return ResponseEntity.ok(service.findByCrateId(crateId));
     }
 
+    @GetMapping("/crate/{crateId}/approved")
+    public ResponseEntity<List<RewardDto>> listApprovedByCrate(@PathVariable Long crateId) {
+        return ResponseEntity.ok(service.findApprovedByCrateId(crateId));
+    }
+
     @GetMapping("/{rewardId}")
     public ResponseEntity<RewardDto> get(@PathVariable Long rewardId) {
         return ResponseEntity.ok(service.findById(rewardId));
