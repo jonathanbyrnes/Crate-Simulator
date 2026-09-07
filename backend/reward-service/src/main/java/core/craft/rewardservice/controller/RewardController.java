@@ -38,7 +38,7 @@ public class RewardController {
 
     @PutMapping("/{rewardId}")
     public ResponseEntity<RewardDto> update(@PathVariable Long rewardId,
-                                           @RequestBody UpdateRewardRequest request) {
+                                           @Validated @RequestBody UpdateRewardRequest request) {
         return ResponseEntity.ok(service.update(rewardId, request));
     }
 
