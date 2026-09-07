@@ -43,4 +43,31 @@ public class SimulationControllerTests {
 
         verify(openingRequestService).requestOpenings(crateId, 1000);
     }
+
+    @Test
+    public void simulate_withMaxCount() throws Exception {
+        mockMvc.perform(post(baseEndpoint, 2L)
+                        .param("count", String.valueOf(SimulationController.MAX_COUNT)))
+                .andExpect(status().isAccepted());
+
+        verify(openingRequestService).requestOpenings(2L, SimulationController.MAX_COUNT);
+    }
+
+    @Test
+    public void simulate_rejectsCountAboveMax() throws Exception {
+        mockMvc.perform(post(baseEndpoint, 2L)
+                        .param("count", String.valueOf(SimulationController.MAX_COUNT + 1)))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(openingRequestService);
+    }
+
+    @Test
+    public void simulate_rejectsZeroCount() throws Exception {
+        mockMvc.perform(post(baseEndpoint, 2L)
+                        .param("count", "0"))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(openingRequestService);
+    }
 }
