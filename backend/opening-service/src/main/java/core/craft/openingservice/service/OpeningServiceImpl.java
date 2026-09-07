@@ -2,6 +2,8 @@ package core.craft.openingservice.service;
 
 import core.craft.openingservice.domain.Opening;
 import core.craft.openingservice.dto.OpeningDto;
+import core.craft.openingservice.dto.OpeningSummaryDto;
+import core.craft.openingservice.dto.RewardOpeningCountDto;
 import core.craft.openingservice.dto.RewardDto;
 import core.craft.openingservice.exception.ApprovedRewardNotFoundException;
 import core.craft.openingservice.exception.CrateNotApprovedException;
@@ -17,7 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -66,6 +70,26 @@ public class OpeningServiceImpl implements OpeningService {
         repository.save(opening);
 
         return toDto(opening);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OpeningSummaryDto summarise(Long crateId) {
+        Map<Long, String> rewardNames;
+        try {
+            List<RewardDto> rewards = openingInterface.listByCrate(crateId).getBody();
+            rewardNames = rewards == null ? Map.of()
+                    : rewards.stream().collect(Collectors.toMap(RewardDto::getId, RewardDto::getName));
+        } catch (FeignException.NotFound ex) {
+            throw new RewardForCrateNotFoundException(crateId);
+        }
+
+        List<RewardOpeningCountDto> counts = repository.countByRewardForCrate(crateId).stream()
+                .map(c -> new RewardOpeningCountDto(c.getRewardId(), rewardNames.get(c.getRewardId()), c.getCount()))
+                .toList();
+        long total = counts.stream().mapToLong(RewardOpeningCountDto::getCount).sum();
+
+        return new OpeningSummaryDto(crateId, total, counts);
     }
 
     private OpeningDto toDto(Opening opening) {
