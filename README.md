@@ -31,6 +31,6 @@ Mutation testing with PIT, report lands in `build/reports/pitest`:
 ./gradlew pitest
 ```
 
-The context-loads tests need a Postgres instance. The Feign base URLs and database settings are read from a `.env` in the repo root when present, otherwise from environment variables.
+The context-loads and repository tests start Postgres (and Kafka for opening-service) in throwaway containers via Testcontainers, so Docker needs to be running. The Feign base URLs and database settings are read from a `.env` in the repo root when present, otherwise from environment variables.
 
 Development is done through feature branches and pull requests, with issue and PR templates in .github.
