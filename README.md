@@ -10,7 +10,7 @@ Simulates crate (loot box) openings to visualise drop rates and provide analytic
 
 ## Running it
 
-Everything spins up through docker compose (three Postgres instances, Zookeeper, Kafka and the services):
+Everything spins up through docker compose (three Postgres instances, Kafka and the services):
 
 ```
 docker compose up --build

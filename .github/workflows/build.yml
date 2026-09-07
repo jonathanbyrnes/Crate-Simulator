@@ -15,11 +15,11 @@ jobs:
       CRATE_SERVICE_BASE_URL: http://localhost:8080
       REWARD_SERVICE_BASE_URL: http://localhost:8081
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-java@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: 24
+          java-version: 25
           cache: gradle
       - name: Test ${{ matrix.service }}
         working-directory: backend/${{ matrix.service }}
