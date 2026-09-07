@@ -8,6 +8,8 @@ import core.craft.openingservice.exception.RewardForCrateNotFoundException;
 import core.craft.openingservice.exception.RewardNotFoundException;
 import core.craft.openingservice.feign.OpeningInterface;
 import core.craft.openingservice.repository.OpeningRepository;
+import feign.FeignException;
+import feign.Request;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -16,8 +18,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -100,6 +104,31 @@ public class OpeningServiceImplTests {
     public void openSelectedRewardNotFound() {
         when(openingInterface.listByCrate(42L)).thenReturn(ResponseEntity.ok(List.of(reward(7L, "Only", 5))));
         when(openingInterface.get(7L)).thenReturn(ResponseEntity.ok().build());
+
+        assertThatThrownBy(() -> service.open(42L))
+                .isInstanceOf(RewardNotFoundException.class)
+                .hasMessage("Reward not found with ID: 7");
+    }
+
+    private FeignException.NotFound notFound() {
+        Request request = Request.create(Request.HttpMethod.GET, "/", Map.of(), null, StandardCharsets.UTF_8, null);
+        return new FeignException.NotFound("not found", request, null, null);
+    }
+
+    @Test
+    public void openRewardsForCrateFeignNotFound() {
+        when(openingInterface.listByCrate(42L)).thenThrow(notFound());
+
+        assertThatThrownBy(() -> service.open(42L))
+                .isInstanceOf(RewardForCrateNotFoundException.class)
+                .hasMessage("Rewards for crate: 42 cannot be found.");
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    public void openSelectedRewardFeignNotFound() {
+        when(openingInterface.listByCrate(42L)).thenReturn(ResponseEntity.ok(List.of(reward(7L, "Only", 5))));
+        when(openingInterface.get(7L)).thenThrow(notFound());
 
         assertThatThrownBy(() -> service.open(42L))
                 .isInstanceOf(RewardNotFoundException.class)

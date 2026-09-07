@@ -16,6 +16,11 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
   postgres-crate:
     image: "postgres:18"
     restart: always
@@ -29,6 +34,11 @@ services:
       - "5432:5432"
     volumes:
       - pgdata_crate:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d crate_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   postgres-reward:
     image: "postgres:18"
@@ -43,6 +53,11 @@ services:
       - "5433:5432"
     volumes:
       - pgdata_reward:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d reward_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   postgres-opening:
     image: "postgres:18"
@@ -57,13 +72,19 @@ services:
       - "5434:5432"
     volumes:
       - pgdata_opening:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d opening_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   crate-service:
     build:
       context: ./backend/crate-service
       dockerfile: Dockerfile
     depends_on:
-      - postgres-crate
+      postgres-crate:
+        condition: service_healthy
     env_file:
       - .env
     environment:
@@ -78,7 +99,8 @@ services:
       context: ./backend/reward-service
       dockerfile: Dockerfile
     depends_on:
-      - postgres-reward
+      postgres-reward:
+        condition: service_healthy
     env_file:
       - .env
     environment:
@@ -94,8 +116,10 @@ services:
       context: ./backend/opening-service
       dockerfile: Dockerfile
     depends_on:
-      - kafka
-      - postgres-opening
+      kafka:
+        condition: service_healthy
+      postgres-opening:
+        condition: service_healthy
     env_file:
       - .env
     environment:

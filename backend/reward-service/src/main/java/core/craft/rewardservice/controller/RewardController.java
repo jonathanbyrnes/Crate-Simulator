@@ -22,7 +22,7 @@ public class RewardController {
     @PostMapping
     public ResponseEntity<RewardDto> create(@Validated @RequestBody CreateRewardRequest request) {
         RewardDto rewardDto = service.create(request);
-        return ResponseEntity.created(URI.create("/api/rewards" + rewardDto.getId()))
+        return ResponseEntity.created(URI.create("/api/rewards/" + rewardDto.getId()))
                 .body(rewardDto);
     }
 

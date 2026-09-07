@@ -8,6 +8,7 @@ import core.craft.openingservice.exception.RewardForCrateNotFoundException;
 import core.craft.openingservice.exception.RewardNotFoundException;
 import core.craft.openingservice.feign.OpeningInterface;
 import core.craft.openingservice.repository.OpeningRepository;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -28,7 +28,12 @@ public class OpeningServiceImpl implements OpeningService {
 
     @Override
     public OpeningDto open(Long crateId) {
-        ResponseEntity<List<RewardDto>> choicesResponseEntity = openingInterface.listByCrate(crateId);
+        ResponseEntity<List<RewardDto>> choicesResponseEntity;
+        try {
+            choicesResponseEntity = openingInterface.listByCrate(crateId);
+        } catch (FeignException.NotFound ex) {
+            throw new RewardForCrateNotFoundException(crateId);
+        }
         if(!choicesResponseEntity.hasBody()) {
             throw new RewardForCrateNotFoundException(crateId);
         }
@@ -61,7 +66,12 @@ public class OpeningServiceImpl implements OpeningService {
     }
 
     private OpeningDto toDto(Opening opening) {
-        ResponseEntity<RewardDto> rewardDto = openingInterface.get(opening.getRewardId());
+        ResponseEntity<RewardDto> rewardDto;
+        try {
+            rewardDto = openingInterface.get(opening.getRewardId());
+        } catch (FeignException.NotFound ex) {
+            throw new RewardNotFoundException(opening.getRewardId());
+        }
         if(!rewardDto.hasBody()) {
             throw new RewardNotFoundException(opening.getRewardId());
         }
