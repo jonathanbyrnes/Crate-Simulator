@@ -1,13 +1,13 @@
 package core.craft.crateservice.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import core.craft.crateservice.dto.CrateDto;
 import core.craft.crateservice.dto.CreateCrateRequest;
 import core.craft.crateservice.exception.CrateNotFoundException;
 import core.craft.crateservice.service.CrateService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
