@@ -4,6 +4,7 @@ import core.craft.openingservice.domain.Opening;
 import core.craft.openingservice.dto.OpeningDto;
 import core.craft.openingservice.dto.RewardDto;
 import core.craft.openingservice.exception.ApprovedRewardNotFoundException;
+import core.craft.openingservice.exception.CrateNotApprovedException;
 import core.craft.openingservice.exception.RewardForCrateNotFoundException;
 import core.craft.openingservice.exception.RewardNotFoundException;
 import core.craft.openingservice.feign.OpeningInterface;
@@ -49,7 +50,7 @@ public class OpeningServiceImplTests {
     @Test
     public void openSingleReward() {
         Instant before = Instant.now();
-        when(openingInterface.listByCrate(42L)).thenReturn(ResponseEntity.ok(List.of(reward(7L, "Only", 5))));
+        when(openingInterface.listApprovedByCrate(42L)).thenReturn(ResponseEntity.ok(List.of(reward(7L, "Only", 5))));
         when(openingInterface.get(7L)).thenReturn(ResponseEntity.ok(reward(7L, "Only", 5)));
 
         OpeningDto result = service.open(42L);
@@ -69,7 +70,7 @@ public class OpeningServiceImplTests {
 
     @Test
     public void openSkipsZeroWeightRewards() {
-        when(openingInterface.listByCrate(42L)).thenReturn(ResponseEntity.ok(List.of(
+        when(openingInterface.listApprovedByCrate(42L)).thenReturn(ResponseEntity.ok(List.of(
                 reward(1L, "Never", 0),
                 reward(2L, "Always", 5),
                 reward(3L, "Never", 0))));
@@ -82,7 +83,7 @@ public class OpeningServiceImplTests {
 
     @Test
     public void openRewardsForCrateNotFound() {
-        when(openingInterface.listByCrate(42L)).thenReturn(ResponseEntity.ok().build());
+        when(openingInterface.listApprovedByCrate(42L)).thenReturn(ResponseEntity.ok().build());
 
         assertThatThrownBy(() -> service.open(42L))
                 .isInstanceOf(RewardForCrateNotFoundException.class)
@@ -92,7 +93,7 @@ public class OpeningServiceImplTests {
 
     @Test
     public void openNoApprovedRewards() {
-        when(openingInterface.listByCrate(42L)).thenReturn(ResponseEntity.ok(List.of()));
+        when(openingInterface.listApprovedByCrate(42L)).thenReturn(ResponseEntity.ok(List.of()));
 
         assertThatThrownBy(() -> service.open(42L))
                 .isInstanceOf(ApprovedRewardNotFoundException.class)
@@ -102,7 +103,7 @@ public class OpeningServiceImplTests {
 
     @Test
     public void openSelectedRewardNotFound() {
-        when(openingInterface.listByCrate(42L)).thenReturn(ResponseEntity.ok(List.of(reward(7L, "Only", 5))));
+        when(openingInterface.listApprovedByCrate(42L)).thenReturn(ResponseEntity.ok(List.of(reward(7L, "Only", 5))));
         when(openingInterface.get(7L)).thenReturn(ResponseEntity.ok().build());
 
         assertThatThrownBy(() -> service.open(42L))
@@ -110,14 +111,21 @@ public class OpeningServiceImplTests {
                 .hasMessage("Reward not found with ID: 7");
     }
 
+    private Request request() {
+        return Request.create(Request.HttpMethod.GET, "/", Map.of(), null, StandardCharsets.UTF_8, null);
+    }
+
     private FeignException.NotFound notFound() {
-        Request request = Request.create(Request.HttpMethod.GET, "/", Map.of(), null, StandardCharsets.UTF_8, null);
-        return new FeignException.NotFound("not found", request, null, null);
+        return new FeignException.NotFound("not found", request(), null, null);
+    }
+
+    private FeignException.Conflict conflict() {
+        return new FeignException.Conflict("conflict", request(), null, null);
     }
 
     @Test
     public void openRewardsForCrateFeignNotFound() {
-        when(openingInterface.listByCrate(42L)).thenThrow(notFound());
+        when(openingInterface.listApprovedByCrate(42L)).thenThrow(notFound());
 
         assertThatThrownBy(() -> service.open(42L))
                 .isInstanceOf(RewardForCrateNotFoundException.class)
@@ -127,11 +135,21 @@ public class OpeningServiceImplTests {
 
     @Test
     public void openSelectedRewardFeignNotFound() {
-        when(openingInterface.listByCrate(42L)).thenReturn(ResponseEntity.ok(List.of(reward(7L, "Only", 5))));
+        when(openingInterface.listApprovedByCrate(42L)).thenReturn(ResponseEntity.ok(List.of(reward(7L, "Only", 5))));
         when(openingInterface.get(7L)).thenThrow(notFound());
 
         assertThatThrownBy(() -> service.open(42L))
                 .isInstanceOf(RewardNotFoundException.class)
                 .hasMessage("Reward not found with ID: 7");
+    }
+
+    @Test
+    public void openCrateNotApproved() {
+        when(openingInterface.listApprovedByCrate(42L)).thenThrow(conflict());
+
+        assertThatThrownBy(() -> service.open(42L))
+                .isInstanceOf(CrateNotApprovedException.class)
+                .hasMessage("Crate is not approved with ID: 42");
+        verify(repository, never()).save(any());
     }
 }

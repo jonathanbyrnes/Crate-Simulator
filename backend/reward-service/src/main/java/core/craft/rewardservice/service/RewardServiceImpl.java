@@ -2,6 +2,7 @@ package core.craft.rewardservice.service;
 
 import core.craft.rewardservice.domain.Reward;
 import core.craft.rewardservice.dto.*;
+import core.craft.rewardservice.exception.CrateNotApprovedException;
 import core.craft.rewardservice.exception.CrateNotFoundException;
 import core.craft.rewardservice.exception.RewardNotFoundException;
 import core.craft.rewardservice.feign.RewardInterface;
@@ -43,13 +44,17 @@ public class RewardServiceImpl implements RewardService {
     @Override
     @Transactional(readOnly = true)
     public List<RewardDto> findByCrateId(Long crateId) {
-        ResponseEntity<CrateDto> crateDtoResponseEntity = rewardInterface.get(crateId);
-        if(!crateDtoResponseEntity.getStatusCode().is2xxSuccessful()
-                || !crateDtoResponseEntity.hasBody()) {
-            throw new CrateNotFoundException(crateId);
-        }
-
+        getCrate(crateId);
         return repository.findByCrateId(crateId).stream().map(this::toDto).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RewardDto> findApprovedByCrateId(Long crateId) {
+        if (!getCrate(crateId).isApproved()) {
+            throw new CrateNotApprovedException(crateId);
+        }
+        return repository.findByCrateIdAndApprovedTrue(crateId).stream().map(this::toDto).toList();
     }
 
     @Override
@@ -79,13 +84,17 @@ public class RewardServiceImpl implements RewardService {
         return new RewardDto(reward.getId(), reward.getCrateId(), reward.getName(), reward.getDescription(), reward.getWeight(), reward.isApproved());
     }
 
-    private void mapRequestToEntity(CreateRewardRequest request, Reward reward) {
-        ResponseEntity<CrateDto> crateDtoResponseEntity = rewardInterface.get(request.getCrateId());
+    private CrateDto getCrate(Long crateId) {
+        ResponseEntity<CrateDto> crateDtoResponseEntity = rewardInterface.get(crateId);
         if(!crateDtoResponseEntity.getStatusCode().is2xxSuccessful()
                 || !crateDtoResponseEntity.hasBody()) {
-            throw new CrateNotFoundException(request.getCrateId());
+            throw new CrateNotFoundException(crateId);
         }
+        return crateDtoResponseEntity.getBody();
+    }
 
+    private void mapRequestToEntity(CreateRewardRequest request, Reward reward) {
+        getCrate(request.getCrateId());
         reward.setCrateId(request.getCrateId());
         reward.setName(request.getName());
         reward.setDescription(request.getDescription());

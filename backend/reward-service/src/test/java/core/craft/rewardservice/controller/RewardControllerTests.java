@@ -228,4 +228,16 @@ public class RewardControllerTests {
 
         verify(rewardService, never()).update(any(), any());
     }
+
+    @Test
+    public void listApprovedByCrate() throws Exception {
+        when(rewardService.findApprovedByCrateId(42L)).thenReturn(List.of(
+                new RewardDto(2L, 42L, "Two", "Second", 4, true)));
+
+        mockMvc.perform(MockMvcRequestBuilders.get(baseEndpoint + "/crate/{crateId}/approved", 42L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(2L))
+                .andExpect(jsonPath("$[0].approved").value(true));
+    }
 }

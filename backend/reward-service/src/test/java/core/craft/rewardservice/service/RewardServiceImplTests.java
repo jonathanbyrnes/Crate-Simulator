@@ -1,5 +1,6 @@
 package core.craft.rewardservice.service;
 
+import core.craft.rewardservice.exception.CrateNotApprovedException;
 import core.craft.rewardservice.domain.Reward;
 import core.craft.rewardservice.dto.CrateDto;
 import core.craft.rewardservice.dto.CreateRewardRequest;
@@ -257,5 +258,38 @@ public class RewardServiceImplTests {
         assertThatThrownBy(() -> service.disapprove(6L))
                 .isInstanceOf(RewardNotFoundException.class);
         verify(repository, never()).save(any());
+    }
+
+    @Test
+    public void findApprovedByCrateId() {
+        when(rewardInterface.get(42L)).thenReturn(crateFound(42L));
+        when(repository.findByCrateIdAndApprovedTrue(42L)).thenReturn(List.of(
+                reward(2L, 42L, "Two", "Second", 4, true)));
+
+        List<RewardDto> result = service.findApprovedByCrateId(42L);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo(2L);
+        assertThat(result.get(0).isApproved()).isTrue();
+        verify(repository, never()).findByCrateId(any());
+    }
+
+    @Test
+    public void findApprovedByCrateIdCrateNotApproved() {
+        when(rewardInterface.get(42L)).thenReturn(ResponseEntity.ok(new CrateDto(42L, "Crate", "Desc", false)));
+
+        assertThatThrownBy(() -> service.findApprovedByCrateId(42L))
+                .isInstanceOf(CrateNotApprovedException.class)
+                .hasMessage("Crate is not approved with ID: 42");
+        verify(repository, never()).findByCrateIdAndApprovedTrue(any());
+    }
+
+    @Test
+    public void findApprovedByCrateIdCrateNotFound() {
+        when(rewardInterface.get(42L)).thenReturn(ResponseEntity.ok().build());
+
+        assertThatThrownBy(() -> service.findApprovedByCrateId(42L))
+                .isInstanceOf(CrateNotFoundException.class);
+        verify(repository, never()).findByCrateIdAndApprovedTrue(any());
     }
 }

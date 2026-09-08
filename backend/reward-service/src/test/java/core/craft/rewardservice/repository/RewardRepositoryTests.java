@@ -50,4 +50,15 @@ public class RewardRepositoryTests {
         assertThat(repository.findById(saved.getId())).get()
                 .extracting(Reward::isApproved).isEqualTo(false);
     }
+
+    @Test
+    public void findByCrateIdAndApprovedTrue() {
+        repository.save(reward(1L, "One", 5, true));
+        repository.save(reward(1L, "Two", 4, false));
+        repository.save(reward(2L, "Other", 3, true));
+
+        List<Reward> result = repository.findByCrateIdAndApprovedTrue(1L);
+
+        assertThat(result).extracting(Reward::getName).containsExactly("One");
+    }
 }
