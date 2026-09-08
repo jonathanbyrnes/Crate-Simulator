@@ -2,6 +2,7 @@ package core.craft.openingservice.service;
 
 import core.craft.openingservice.domain.Opening;
 import core.craft.openingservice.dto.OpeningDto;
+import core.craft.openingservice.dto.OpeningSummaryDto;
 import core.craft.openingservice.dto.RewardDto;
 import core.craft.openingservice.exception.ApprovedRewardNotFoundException;
 import core.craft.openingservice.exception.CrateNotApprovedException;
@@ -9,6 +10,7 @@ import core.craft.openingservice.exception.RewardForCrateNotFoundException;
 import core.craft.openingservice.exception.RewardNotFoundException;
 import core.craft.openingservice.feign.OpeningInterface;
 import core.craft.openingservice.repository.OpeningRepository;
+import core.craft.openingservice.repository.RewardOpeningCount;
 import feign.FeignException;
 import feign.Request;
 import org.junit.jupiter.api.Test;
@@ -151,5 +153,51 @@ public class OpeningServiceImplTests {
                 .isInstanceOf(CrateNotApprovedException.class)
                 .hasMessage("Crate is not approved with ID: 42");
         verify(repository, never()).save(any());
+    }
+
+    private RewardOpeningCount count(Long rewardId, long count) {
+        return new RewardOpeningCount() {
+            public Long getRewardId() { return rewardId; }
+            public long getCount() { return count; }
+        };
+    }
+
+    @Test
+    public void summarise() {
+        when(openingInterface.listByCrate(42L)).thenReturn(ResponseEntity.ok(List.of(
+                reward(7L, "Common", 5), reward(8L, "Rare", 1))));
+        when(repository.countByRewardForCrate(42L)).thenReturn(List.of(count(7L, 9), count(8L, 1), count(9L, 2)));
+
+        OpeningSummaryDto result = service.summarise(42L);
+
+        assertThat(result.getCrateId()).isEqualTo(42L);
+        assertThat(result.getTotal()).isEqualTo(12);
+        assertThat(result.getRewards()).hasSize(3);
+        assertThat(result.getRewards().get(0).getRewardId()).isEqualTo(7L);
+        assertThat(result.getRewards().get(0).getRewardName()).isEqualTo("Common");
+        assertThat(result.getRewards().get(0).getCount()).isEqualTo(9);
+        assertThat(result.getRewards().get(1).getRewardName()).isEqualTo("Rare");
+        assertThat(result.getRewards().get(2).getRewardId()).isEqualTo(9L);
+        assertThat(result.getRewards().get(2).getRewardName()).isNull();
+    }
+
+    @Test
+    public void summariseNoOpenings() {
+        when(openingInterface.listByCrate(42L)).thenReturn(ResponseEntity.ok(List.of(reward(7L, "Common", 5))));
+        when(repository.countByRewardForCrate(42L)).thenReturn(List.of());
+
+        OpeningSummaryDto result = service.summarise(42L);
+
+        assertThat(result.getTotal()).isZero();
+        assertThat(result.getRewards()).isEmpty();
+    }
+
+    @Test
+    public void summariseCrateNotFound() {
+        when(openingInterface.listByCrate(42L)).thenThrow(notFound());
+
+        assertThatThrownBy(() -> service.summarise(42L))
+                .isInstanceOf(RewardForCrateNotFoundException.class);
+        verify(repository, never()).countByRewardForCrate(any());
     }
 }

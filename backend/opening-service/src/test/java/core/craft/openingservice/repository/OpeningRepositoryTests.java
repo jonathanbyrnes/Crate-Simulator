@@ -43,4 +43,27 @@ public class OpeningRepositoryTests {
 
         assertThat(repository.findByCrateId(99L)).isEmpty();
     }
+
+    @Test
+    public void countByRewardForCrate() {
+        repository.save(opening(1L, 10L));
+        repository.save(opening(1L, 10L));
+        repository.save(opening(1L, 11L));
+        repository.save(opening(2L, 10L));
+
+        List<RewardOpeningCount> result = repository.countByRewardForCrate(1L);
+
+        assertThat(result).hasSize(2);
+        assertThat(result).filteredOn(c -> c.getRewardId().equals(10L)).singleElement()
+                .extracting(RewardOpeningCount::getCount).isEqualTo(2L);
+        assertThat(result).filteredOn(c -> c.getRewardId().equals(11L)).singleElement()
+                .extracting(RewardOpeningCount::getCount).isEqualTo(1L);
+    }
+
+    @Test
+    public void countByRewardForCrateEmpty() {
+        repository.save(opening(1L, 10L));
+
+        assertThat(repository.countByRewardForCrate(99L)).isEmpty();
+    }
 }
