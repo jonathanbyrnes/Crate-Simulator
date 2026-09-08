@@ -40,7 +40,7 @@ public class RewardControllerTests {
     @Test
     public void create() throws Exception {
         CreateRewardRequest input = new CreateRewardRequest(
-                1L, "Test Reward", "Test Desc", 5
+                1L, "Test Reward", "Test Desc", 5.0
         );
 
         String requestBody = objectMapper.writeValueAsString(input);
@@ -110,7 +110,7 @@ public class RewardControllerTests {
     @Test
     public void update() throws Exception {
         UpdateRewardRequest input = new UpdateRewardRequest(
-                "Test Reward", "Test Desc", 5);
+                "Test Reward", "Test Desc", 5.0);
 
         String requestBody = objectMapper.writeValueAsString(input);
 
@@ -192,6 +192,42 @@ public class RewardControllerTests {
                 .andExpect(status().isNotFound());
     }
 
+
+    @Test
+    public void createRejectsMissingCrateId() throws Exception {
+        mockMvc.perform(post(baseEndpoint)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"Test Reward","weight":5.0}
+                                """))
+                .andExpect(status().isBadRequest());
+
+        verify(rewardService, never()).create(any());
+    }
+
+    @Test
+    public void createRejectsZeroWeight() throws Exception {
+        mockMvc.perform(post(baseEndpoint)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"crateId":1,"name":"Test Reward","weight":0}
+                                """))
+                .andExpect(status().isBadRequest());
+
+        verify(rewardService, never()).create(any());
+    }
+
+    @Test
+    public void updateRejectsNegativeWeight() throws Exception {
+        mockMvc.perform(put(rewardTargettedEndpoint, 2L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"Test Reward","weight":-1}
+                                """))
+                .andExpect(status().isBadRequest());
+
+        verify(rewardService, never()).update(any(), any());
+    }
 
     @Test
     public void listApprovedByCrate() throws Exception {

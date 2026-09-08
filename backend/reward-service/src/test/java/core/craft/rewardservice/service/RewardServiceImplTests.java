@@ -56,7 +56,7 @@ public class RewardServiceImplTests {
         when(repository.save(any(Reward.class)))
                 .thenReturn(reward(1L, 42L, "Test Reward", "Test Desc", 5, false));
 
-        RewardDto result = service.create(new CreateRewardRequest(42L, "Test Reward", "Test Desc", 5));
+        RewardDto result = service.create(new CreateRewardRequest(42L, "Test Reward", "Test Desc", 5.0));
 
         ArgumentCaptor<Reward> captor = ArgumentCaptor.forClass(Reward.class);
         verify(repository).save(captor.capture());
@@ -79,7 +79,7 @@ public class RewardServiceImplTests {
     public void createCrateNotFoundWhenNoBody() {
         when(rewardInterface.get(42L)).thenReturn(ResponseEntity.ok().build());
 
-        assertThatThrownBy(() -> service.create(new CreateRewardRequest(42L, "Test Reward", "Test Desc", 5)))
+        assertThatThrownBy(() -> service.create(new CreateRewardRequest(42L, "Test Reward", "Test Desc", 5.0)))
                 .isInstanceOf(CrateNotFoundException.class)
                 .hasMessage("Crate not found with ID: 42");
         verify(repository, never()).save(any());
@@ -90,7 +90,7 @@ public class RewardServiceImplTests {
         when(rewardInterface.get(42L))
                 .thenReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).body(new CrateDto()));
 
-        assertThatThrownBy(() -> service.create(new CreateRewardRequest(42L, "Test Reward", "Test Desc", 5)))
+        assertThatThrownBy(() -> service.create(new CreateRewardRequest(42L, "Test Reward", "Test Desc", 5.0)))
                 .isInstanceOf(CrateNotFoundException.class);
         verify(repository, never()).save(any());
     }
@@ -101,7 +101,7 @@ public class RewardServiceImplTests {
         when(repository.findById(2L)).thenReturn(Optional.of(existing));
         when(repository.save(existing)).thenReturn(existing);
 
-        RewardDto result = service.update(2L, new UpdateRewardRequest("New Name", "New Desc", 7));
+        RewardDto result = service.update(2L, new UpdateRewardRequest("New Name", "New Desc", 7.0));
 
         assertThat(existing.getCrateId()).isEqualTo(42L);
         assertThat(existing.getName()).isEqualTo("New Name");
@@ -119,7 +119,7 @@ public class RewardServiceImplTests {
     public void updateNotFound() {
         when(repository.findById(2L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.update(2L, new UpdateRewardRequest("New Name", "New Desc", 7)))
+        assertThatThrownBy(() -> service.update(2L, new UpdateRewardRequest("New Name", "New Desc", 7.0)))
                 .isInstanceOf(RewardNotFoundException.class)
                 .hasMessage("Reward not found with ID: 2");
         verify(repository, never()).save(any());

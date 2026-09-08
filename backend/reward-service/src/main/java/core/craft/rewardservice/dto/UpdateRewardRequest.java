@@ -3,6 +3,7 @@ package core.craft.rewardservice.dto;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,6 +23,7 @@ public class UpdateRewardRequest {
     @Nullable
     private String description;
 
-    @NotNull
-    private double weight;
+    @NotNull(message = "A reward weight is required.")
+    @Positive(message = "A reward weight must be greater than zero.")
+    private Double weight;
 }
