@@ -56,7 +56,7 @@ public class OpeningServiceImpl implements OpeningService {
         RewardDto selected = null;
         for (RewardDto r : choices) {
             pick -= r.getWeight();
-            if (pick <= 0) {
+            if (pick < 0) {
                 selected = r;
                 break;
             }
