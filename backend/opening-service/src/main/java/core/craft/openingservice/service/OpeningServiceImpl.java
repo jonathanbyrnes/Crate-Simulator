@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,6 +29,7 @@ public class OpeningServiceImpl implements OpeningService {
 
     private final OpeningRepository repository;
     private final OpeningInterface openingInterface;
+    private final Randomiser randomiser;
 
     @Override
     public OpeningDto open(Long crateId) {
@@ -52,11 +52,11 @@ public class OpeningServiceImpl implements OpeningService {
         }
 
         double total = choices.stream().mapToDouble(RewardDto::getWeight).sum();
-        double pick = ThreadLocalRandom.current().nextDouble(total);
+        double pick = randomiser.nextDouble(total);
         RewardDto selected = null;
         for (RewardDto r : choices) {
             pick -= r.getWeight();
-            if (pick <= 0) {
+            if (pick < 0) {
                 selected = r;
                 break;
             }

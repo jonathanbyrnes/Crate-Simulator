@@ -42,6 +42,9 @@ public class OpeningServiceImplTests {
     @Mock
     private OpeningInterface openingInterface;
 
+    @Mock
+    private Randomiser randomiser;
+
     @InjectMocks
     private OpeningServiceImpl service;
 
@@ -71,16 +74,36 @@ public class OpeningServiceImplTests {
     }
 
     @Test
-    public void openSkipsZeroWeightRewards() {
+    public void openPicksFirstRewardBelowBoundary() {
+        when(openingInterface.listApprovedByCrate(42L)).thenReturn(ResponseEntity.ok(List.of(
+                reward(1L, "First", 2),
+                reward(2L, "Second", 3))));
+        when(openingInterface.get(1L)).thenReturn(ResponseEntity.ok(reward(1L, "First", 2)));
+        when(randomiser.nextDouble(5.0)).thenReturn(1.999);
+
+        assertThat(service.open(42L).getRewardId()).isEqualTo(1L);
+    }
+
+    @Test
+    public void openPicksRewardOwningTheBoundaryDraw() {
+        when(openingInterface.listApprovedByCrate(42L)).thenReturn(ResponseEntity.ok(List.of(
+                reward(1L, "First", 2),
+                reward(2L, "Second", 3))));
+        when(openingInterface.get(2L)).thenReturn(ResponseEntity.ok(reward(2L, "Second", 3)));
+        when(randomiser.nextDouble(5.0)).thenReturn(2.0);
+
+        assertThat(service.open(42L).getRewardId()).isEqualTo(2L);
+    }
+
+    @Test
+    public void openSkipsLeadingZeroWeightRewardOnZeroDraw() {
         when(openingInterface.listApprovedByCrate(42L)).thenReturn(ResponseEntity.ok(List.of(
                 reward(1L, "Never", 0),
-                reward(2L, "Always", 5),
-                reward(3L, "Never", 0))));
+                reward(2L, "Always", 5))));
         when(openingInterface.get(2L)).thenReturn(ResponseEntity.ok(reward(2L, "Always", 5)));
+        when(randomiser.nextDouble(5.0)).thenReturn(0.0);
 
-        for (int i = 0; i < 100; i++) {
-            assertThat(service.open(42L).getRewardId()).isEqualTo(2L);
-        }
+        assertThat(service.open(42L).getRewardId()).isEqualTo(2L);
     }
 
     @Test
